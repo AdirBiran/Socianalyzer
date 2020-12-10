@@ -1,0 +1,8 @@
+pip install cmake
+pip install opencv-python
+pip install dlib
+pip install face_recognition
+pip install imutils
+pip install numpy
+
+visual studio build tools
