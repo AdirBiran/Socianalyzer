@@ -16,8 +16,8 @@ def start():
     except OSError:
         print("Creation of the directories failed")
 
-    cropper = Cropper()
-    cropper.cropImagesInDirectory(DATA_PATH)
+    # cropper = Cropper()
+    # cropper.cropImagesInDirectory(DATA_PATH)
 
     extractor = Extractor()
     extractor.extractFeaturesFromDirectory(FACES_PATH)

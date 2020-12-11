@@ -28,9 +28,9 @@ class Classifier:
         # beginning of  the cluster numbering with 1 instead of 0
         y_kmeans1 = y_kmeans + 1
         # New Dataframe called cluster
-        cluster = pd.DataFrame(y_kmeans1)
+        # cluster = pd.DataFrame(y_kmeans1)
         # Adding cluster to the Dataset1
-        dataset1['cluster'] = cluster
+        dataset1['cluster'] = y_kmeans1
         for index, row in dataset1.iterrows():
             # save image in directory of cluster's number
             cluster_path = os.path.join(CLUSTERS_PATH, str(row['cluster']))
