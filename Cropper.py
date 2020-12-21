@@ -7,12 +7,20 @@ class Cropper:
         self.cascPath = os.path.join(RESOURCES_PATH, 'haarcascade_frontalface_default.xml')
         self.faceCounter = 1
         self.min_size = min_size
+        # Image to faces (String, List)
+        self.mapping_dictionary = {}
+        # Face to image (String, String)
+        self.inverse_mapping_dictionary = {}
 
     #imagePath = absolute path to image
     def cropImage(self, imagePath):
         faceCascade = cv2.CascadeClassifier(self.cascPath)
         image = cv2.imread(imagePath)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        whole_image_name = imagePath[imagePath.rfind("/") + 1:]
+
+        self.mapping_dictionary[whole_image_name] = []
 
         faces = faceCascade.detectMultiScale(
             gray,
@@ -32,7 +40,12 @@ class Cropper:
             # show rectangle on faces
             #cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-            cv2.imwrite(FACES_PATH + "/face" + str(self.faceCounter) + ".jpg", cropped_face)
+            face_name = "face" + str(self.faceCounter) + ".jpg"
+            self.mapping_dictionary[whole_image_name].append(face_name)
+            self.inverse_mapping_dictionary[face_name] = whole_image_name
+
+            face_path = FACES_PATH + "/" + face_name
+            cv2.imwrite(face_path, cropped_face)
             self.faceCounter += 1
             facesFound += 1
 

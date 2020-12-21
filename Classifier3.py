@@ -6,10 +6,6 @@ from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 import pandas as pd
 
-ext = Extractor()
-dirPath = FACES_PATH
-ext.extractFeaturesFromDirectory(dirPath)
-
 
 class Classifier:
     def __init__(self, face_images_list):

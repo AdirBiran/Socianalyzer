@@ -6,8 +6,12 @@ from FaceImage import FaceImage
 
 class Extractor:
 
-    def __init__(self):
+    def __init__(self, cropper):
         self.images = []
+        # Image to faces (String, List)
+        self.mapping_dictionary = cropper.mapping_dictionary
+        # Face to image (String, String)
+        self.inverse_mapping_dictionary = cropper.inverse_mapping_dictionary
 
     def extractFeaturesFromFaceImage(self, imagePath):
         image = cv2.imread(imagePath)
@@ -28,3 +32,28 @@ class Extractor:
             if face_encoding is not None:
                 face_image_obj = FaceImage(face_name, face_encoding)
                 self.images.append(face_image_obj)
+
+    # Remove "unfaces" images from the mapping dictionary
+    def fix_mapping_dictionary(self):
+        # Just faces (without noise images)
+        faces_names = [f.name for f in self.images]
+
+        # New mappings
+        new_mapping = {}
+        new_inverse_mapping = {}
+
+        # Saves only faces in mapping
+        for key in self.mapping_dictionary:
+            new_mapping[key] = []
+            for face in self.mapping_dictionary[key]:
+                if face in faces_names:
+                    new_mapping[key].append(face)
+
+        # Saves only faces in inverse mapping
+        for face in self.inverse_mapping_dictionary:
+            if face in faces_names:
+                new_inverse_mapping[face] = self.inverse_mapping_dictionary[face]
+
+        # Save new mappings
+        self.mapping_dictionary = new_mapping
+        self.inverse_mapping_dictionary = new_inverse_mapping
