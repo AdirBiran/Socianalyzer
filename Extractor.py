@@ -1,3 +1,10 @@
+"""
+Authors:
+    Liat Cohen  205595283
+    Adir Biran  308567239
+    12/2020
+"""
+
 from imutils import paths
 import face_recognition
 import cv2
@@ -16,8 +23,12 @@ class Extractor:
     def extractFeaturesFromFaceImage(self, imagePath):
         image = cv2.imread(imagePath)
         rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        # Getting the face encodings
         boxes = face_recognition.face_locations(rgb, model='hog')
         encodings = face_recognition.face_encodings(rgb, boxes)
+
+        # If picture is a face
         if len(encodings) > 0:
             return encodings[0]
         else:
@@ -25,7 +36,9 @@ class Extractor:
             return None
 
     def extractFeaturesFromDirectory(self, dirPath):
+        # All images in directory
         imagePaths = list(paths.list_images(dirPath))
+
         for path in imagePaths:
             face_name = path[path.rfind("\\") + 1:]
             face_encoding = self.extractFeaturesFromFaceImage(path)

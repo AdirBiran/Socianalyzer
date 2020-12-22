@@ -1,9 +1,13 @@
-from Extractor import Extractor
+"""
+Authors:
+    Liat Cohen  205595283
+    Adir Biran  308567239
+    12/2020
+"""
+
 from Settings import *
-import numpy as np
 from shutil import copyfile
 from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
 import pandas as pd
 
 
