@@ -3,7 +3,7 @@ from Settings import *
 
 
 class Cropper:
-    def __init__(self, min_size=50):
+    def __init__(self, min_size=45):
         self.cascPath = os.path.join(RESOURCES_PATH, 'haarcascade_frontalface_default.xml')
         self.faceCounter = 1
         self.min_size = min_size
@@ -16,8 +16,8 @@ class Cropper:
 
         faces = faceCascade.detectMultiScale(
             gray,
-            scaleFactor=1.1,
-            minNeighbors=3,
+            scaleFactor=1.007,
+            minNeighbors=9,
             minSize=(self.min_size, self.min_size),
             flags=cv2.CASCADE_SCALE_IMAGE
         )
@@ -30,16 +30,16 @@ class Cropper:
             cropped_face = image[y:y + h, x:x + w]
 
             # show rectangle on faces
-            #cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            # cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
             cv2.imwrite(FACES_PATH + "/face" + str(self.faceCounter) + ".jpg", cropped_face)
             self.faceCounter += 1
             facesFound += 1
 
-        #print("Found {0} faces!".format(facesFound))
-        #self.showImage(image)
+        # print("Found {0} faces!".format(facesFound))
+        # self.showImage(image)
 
-    #dirPath = absolute path to directory
+    # dirPath = absolute path to directory
     def cropImagesInDirectory(self, dirPath):
         imagesPathesToCrop = []
         for file in os.listdir(dirPath):
