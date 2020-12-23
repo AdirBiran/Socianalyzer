@@ -1,15 +1,17 @@
-from Extractor import Extractor
+"""
+Authors:
+    Liat Cohen  205595283
+    Adir Biran  308567239
+    12/2020
+"""
+
 from Settings import *
-import numpy as np
 from shutil import copyfile
 from sklearn.cluster import KMeans
 import scipy.spatial.distance as sdist
 import matplotlib.pyplot as plt
-import pandas as pd
 
-ext = Extractor()
-dirPath = FACES_PATH
-ext.extractFeaturesFromDirectory(dirPath)
+import pandas as pd
 
 
 class Classifier:
