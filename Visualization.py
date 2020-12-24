@@ -21,8 +21,7 @@ class Visualization:
         face_name = self.connections.clustering_dictionary[str(clust_num)][0]
         return os.path.join(CLUSTERS_PATH, str(clust_num), face_name)
 
-    # Shows all images belong to specific cluster
-    def show_all_personal_pictures(self, clust_num):
+    def get_all_personal_pictures(self, clust_num):
         # Faces from cluster
         cluster_faces = self.connections.clustering_dictionary[str(clust_num)]
         paths = []
@@ -34,28 +33,37 @@ class Visualization:
             img_path = os.path.join(DATA_PATH, img_name)
             paths.append(img_path)
 
+        return paths
+
+    # Shows all images belong to specific cluster
+    def show_all_personal_pictures(self, clust_num):
+        paths = self.get_all_personal_pictures()
         self.show_pictures(paths)
 
-    # Show pictures of two clusters
-    def show_pictures_of_connection(self, clust_num_1, clust_num_2):
+    def get_pictures_of_connection(self, clust_num_1, clust_num_2):
         clust_num_1 = str(clust_num_1)
         clust_num_2 = str(clust_num_2)
         images = []
 
         # Looping all connections to get the relevant images
         for connection in self.connections.total_connections:
-            if (connection[0] == clust_num_1 and connection[1] == clust_num_2) or (connection[0] == clust_num_2 and connection[1] == clust_num_1):
+            if (connection[0] == clust_num_1 and connection[1] == clust_num_2) or (
+                    connection[0] == clust_num_2 and connection[1] == clust_num_1):
                 images = connection[3]
                 break
 
         # No common images
         if len(images) == 0:
-            print("No common images found")
             return
 
         # Getting images' paths
         images_paths = [os.path.join(DATA_PATH, img) for img in images]
 
+        return images_paths
+
+    # Show pictures of two clusters
+    def show_pictures_of_connection(self, clust_num_1, clust_num_2):
+        images_paths = self.get_pictures_of_connection(clust_num_1, clust_num_2)
         self.show_pictures(images_paths)
 
     # Showing pictures
@@ -147,5 +155,7 @@ class Visualization:
             a.set_aspect('equal')
             a.axis('off')
 
+        mng = plt.get_current_fig_manager()
+        mng.window.state('zoomed')
         # Plotting the graph
         plt.show()

@@ -21,5 +21,15 @@ CONNECTIONS_PATH = os.path.join(PROJECT_PATH, 'Connections')
 CLUSTERING_THRESHOLD = 0.93
 
 # Image Max Sizes
-IMAGE_MAX_WIDTH = 500
-IMAGE_MAX_HEIGHT = 500
+IMAGE_MAX_WIDTH = 200
+IMAGE_MAX_HEIGHT = 200
+
+# Face Size
+FACE_SIZE = 50
+
+# Screen Sizes
+SCREEN_HEIGHT = 0
+SCREEN_WIDTH = 0
+
+# App Name
+APP_NAME = "Socianalyze"
