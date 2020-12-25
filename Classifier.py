@@ -12,6 +12,7 @@ from shutil import copyfile
 
 class Classifier:
     def __init__(self, face_images_list):
+
         self.face_images_list = face_images_list
         self.clustering_dictionary = {}
         self.inverse_clustering_dictionary = {}

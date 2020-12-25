@@ -23,6 +23,7 @@ CLUSTERING_THRESHOLD = 0.93
 # Image Max Sizes
 IMAGE_MAX_WIDTH = 200
 IMAGE_MAX_HEIGHT = 200
+IMAGE_MAX_SIZE = 300
 
 # Face Size
 FACE_SIZE = 50
@@ -32,4 +33,4 @@ SCREEN_HEIGHT = 0
 SCREEN_WIDTH = 0
 
 # App Name
-APP_NAME = "Socianalyze"
+APP_NAME = "Socianalyzer"

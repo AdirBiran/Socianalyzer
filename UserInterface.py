@@ -1,8 +1,10 @@
+import ctypes
 import tkinter as tk
 
 from Settings import *
 from Controller import *
 from PIL import ImageTk, Image
+from ScrollableFrame import ScrollableFrame
 
 TITLE_FONT_STYLE = ("David", 20, "bold")
 SUBTITLE_FONT_STYLE = ("David", 16, "bold")
@@ -77,43 +79,23 @@ def show_full_picture(image_path):
     inner_frame.pack(side="top")
 
 # Show multiple pictures
-def show_pictures(images_paths):
+def show_pictures(images_paths, title):
     win = tk.Toplevel()
     win.wm_title("Pictures")
     win.configure(bg=BACKGROUND_COLOR)
     win.attributes("-fullscreen", True)
-
+    frame = tk.Frame(win, bg=BACKGROUND_COLOR)
+    new_title(frame, title)
+    frame.pack()
     # Menu bar
     menu_bar = tk.Menu(win)
     menu_bar.add_command(label="Close", command=win.destroy)
     win.configure(menu=menu_bar)
+    scale = 0.8
+    scrollable_frame = ScrollableFrame(win, win.winfo_screenheight()*scale, IMAGE_MAX_SIZE, 3, 30, 30, BACKGROUND_COLOR)
+    scrollable_frame.fill_data(images_paths, command_bind_on_click=show_full_picture)
 
-    inner_frame = tk.Canvas(win, bg=BACKGROUND_COLOR)
 
-    i = 1
-    j = 1
-
-    # No common pictures
-    if images_paths is None:
-        new_title(inner_frame, "No common pictures found")
-    else:
-        # Looping all pictures
-        for img_path in images_paths:
-            img = Image.open(img_path)
-            img = img.resize((IMAGE_MAX_HEIGHT, IMAGE_MAX_WIDTH), Image.ANTIALIAS)
-            img = ImageTk.PhotoImage(img)
-            face_button = tk.Button(inner_frame, image=img, command=lambda r=img_path: show_full_picture(r))
-            face_button.image = img
-            face_button.grid(row=j, column=i, padx=30, pady=30)
-
-            # Pictures per row
-            pictures_per_row = 5
-            if i % pictures_per_row == 0:
-                j += 1
-                i = 0
-            i += 1
-
-    inner_frame.pack(side="top")
 
 # Initiations
 def init_directories():
@@ -187,7 +169,7 @@ class SocialConnectionsApp(tk.Tk):
     # Popup contact
     def popup_contact(self):
         contact_string = "Project Members:\n\n" \
-                         "\tLiat Cohen\t\tliatico@post.bgu.ac.li\n\n" \
+                         "\tLiat Cohen\t\tliatico@post.bgu.ac.il\n\n" \
                          "\tAdir Biran\t\tadir.biran@gmail.com\n\n\n\n" \
 
 
@@ -201,7 +183,9 @@ class SocialConnectionsApp(tk.Tk):
                        "\t2. Extractor - Extract 128 numeric features for each face\n\n" \
                        "\t3. Classifier - Cluster the faces based on Cosine Similarity\n\n" \
                        "\t4. Connections - Create the connections between the clusters\n\n" \
-                       "\t5. Visualization - Draw the graphs and connections\n\n\n\n" \
+                       "\t5. Visualization - Draw the graphs and connections\n\n" \
+                       "\t6. Controller - Control the request of the UI to the lower layers\n\n" \
+                       "\t7. UserInterface - GUI for different user operations\n\n\n\n" \
                        "Programming Languages Principles\n\n" \
                        "December 2020\n\n"
 
@@ -218,12 +202,23 @@ class MainFrame(tk.Frame):
         new_title(self, APP_NAME)
         new_subtitle(self, "Social analysis based on pictures").pack(side="top")
 
-        # Buttons
-        generate_connections_btn = new_button(self, "Generate Connections", lambda: master.switch_frame(GenerateConnections))
-        generate_connections_btn.pack(side="top")
-        results_btn = new_button(self, "View Results", lambda: master.switch_frame(Results))
-        results_btn.pack(side="top")
+        inner_frame = tk.Frame(self, bg=BACKGROUND_COLOR)
 
+        # Sub titles
+        new_subtitle(inner_frame, "Generate Connections").grid(row=0, column=0, padx=100, pady=(100, 0))
+        new_subtitle(inner_frame, "View Results").grid(row=0, column=1, padx=100, pady=(100, 0))
+
+        # Explanations
+        tk.Label(inner_frame, text="Cut the faces, cluster the faces and generate the social connections", bg=BACKGROUND_COLOR).grid(row=1, column=0, padx=100, pady=50)
+        tk.Label(inner_frame, text="View the results of the generated connections", bg=BACKGROUND_COLOR).grid(row=1, column=1, padx=100, pady=50)
+
+        # Buttons
+        generate_connections_btn = new_button(inner_frame, "Generate Connections", lambda: master.switch_frame(GenerateConnections))
+        generate_connections_btn.grid(row=2, column=0, padx=100)
+        results_btn = new_button(inner_frame, "View Results", lambda: master.switch_frame(Results))
+        results_btn.grid(row=2, column=1, padx=100)
+
+        inner_frame.pack(side="top")
 
 # Generate connections frame
 class GenerateConnections(tk.Frame):
@@ -250,8 +245,19 @@ class GenerateConnections(tk.Frame):
 
     # Generate the connections
     def generate_connections(self):
-        # Functionality
-        self.master.switch_frame(Results)
+        if are_connections_generated():
+            res = ctypes.windll.user32.MessageBoxW(0, "Connections are already generated.\nDo you want to recluster the data?", "Alert!", 4)
+
+            # 6 for "yes"
+            if res == 6:
+                Controller().generate_connections()
+                self.master.switch_frame(Results)
+
+        else:
+            Controller().generate_connections()
+            self.master.switch_frame(Results)
+
+
 
 
 # Results frame
@@ -268,19 +274,19 @@ class Results(tk.Frame):
         # If connections were generated
         if are_connections_generated():
             # Sub titles
-            new_subtitle(inner_frame, "Personal Connections Graph").grid(row=0, column=0)
-            new_subtitle(inner_frame, "Personal Pictures").grid(row=0, column=1)
-            new_subtitle(inner_frame, "Connection's Pictures").grid(row=0, column=2)
+            new_subtitle(inner_frame, "Personal Connections Graph").grid(row=0, column=0, padx=50, pady=(100, 0))
+            new_subtitle(inner_frame, "Personal Pictures").grid(row=0, column=1, padx=50, pady=(100, 0))
+            new_subtitle(inner_frame, "Connection's Pictures").grid(row=0, column=2, padx=50, pady=(100, 0))
 
             # Explanations
-            tk.Label(inner_frame, text="All people with common pictures", bg=BACKGROUND_COLOR).grid(row=1, column=0)
-            tk.Label(inner_frame, text="All pictures of someone", bg=BACKGROUND_COLOR).grid(row=1, column=1)
-            tk.Label(inner_frame, text="All pictures of a connection (between 2 people)", bg=BACKGROUND_COLOR).grid(row=1, column=2)
+            tk.Label(inner_frame, text="All people with common pictures", bg=BACKGROUND_COLOR).grid(row=1, column=0, padx=50, pady=50)
+            tk.Label(inner_frame, text="All pictures of someone", bg=BACKGROUND_COLOR).grid(row=1, column=1, padx=50, pady=50)
+            tk.Label(inner_frame, text="All pictures of a connection (between 2 people)", bg=BACKGROUND_COLOR).grid(row=1, column=2, padx=50, pady=50)
 
             # Buttons
-            new_button(inner_frame, "View", lambda: self.master.switch_frame(PersonalConnectionsChooseScreen)).grid(row=2, column=0)
-            new_button(inner_frame, "View", lambda: self.master.switch_frame(PersonalPicturesChooseScreen)).grid(row=2, column=1)
-            new_button(inner_frame, "View", lambda: self.master.switch_frame(ConnectionsPictureChooseScreen)).grid(row=2, column=2)
+            new_button(inner_frame, "View", lambda: self.master.switch_frame(PersonalConnectionsChooseScreen)).grid(row=2, column=0, padx=50)
+            new_button(inner_frame, "View", lambda: self.master.switch_frame(PersonalPicturesChooseScreen)).grid(row=2, column=1, padx=50)
+            new_button(inner_frame, "View", lambda: self.master.switch_frame(ConnectionsPictureChooseScreen)).grid(row=2, column=2, padx=50)
 
         # Connections weren't generated
         else:
@@ -384,7 +390,7 @@ class PersonalPicturesChooseScreen(tk.Frame):
     def personal_pictures(self, choice):
         images_paths = self.controller.get_all_personal_pictures(choice)
 
-        show_pictures(images_paths)
+        show_pictures(images_paths, "Personal Pictures")
 
 class ConnectionsPictureChooseScreen(tk.Frame):
     def __init__(self, master):
@@ -446,7 +452,11 @@ class ConnectionsPictureChooseScreen(tk.Frame):
             btn.configure(command=lambda r=btn['text']: self.first_choice(r))
 
         # Showing pictures
-        show_pictures(images_paths)
+        show_pictures(images_paths, "Connection's Pictures")
+
+
+
+
 
 if __name__ == "__main__":
     init_directories()

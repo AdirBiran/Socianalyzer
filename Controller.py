@@ -3,6 +3,7 @@ from Extractor import Extractor
 from Connections import Connections
 from Classifier import Classifier
 from Visualization import Visualization
+from Settings import *
 
 class Controller:
     def __init__(self):
@@ -17,7 +18,11 @@ class Controller:
         self.connections.load_connections_from_disk()
 
     def generate_connections(self):
-        pass
+        self.cropper.cropImagesInDirectory(DATA_PATH)
+        self.extractor.extractFeaturesFromDirectory(FACES_PATH)
+        self.extractor.fix_mapping_dictionary()
+        self.classifier.calculate_all_similarities()
+        self.connections.generate_connections()
 
     def get_results(self):
         return self.connections.get_clusters()
