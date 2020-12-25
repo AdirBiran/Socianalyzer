@@ -10,6 +10,7 @@ from shutil import copyfile
 from sklearn.cluster import KMeans
 import scipy.spatial.distance as sdist
 import matplotlib.pyplot as plt
+from scipy.spatial import distance
 
 import pandas as pd
 
@@ -35,15 +36,16 @@ class Classifier:
         distances_from_centers = pd.DataFrame(columns=['K','Score'])
         k = []
         scores = []
-        i = 0
         for kmeans in history.keys():
+            dist = []
             centroids = kmeans.cluster_centers_
             clusters = history[kmeans]
             # find a different system to calculate distance
-            dist = sdist.norm(self.face_images_encoded_list - centroids[clusters])
+            for j in range(len(self.face_images_encoded_list)):
+                dist.append(distance.euclidean(self.face_images_encoded_list[j], centroids[clusters][j]))
             k.append(kmeans.n_clusters)
-            scores.append(dist)
-            i += 1
+            scores.append(sum(dist)/len(dist))
+
         distances_from_centers['K'] = k
         distances_from_centers['Score'] = scores
         return distances_from_centers
@@ -57,7 +59,8 @@ class Classifier:
         # print(distances_from_centers)
         plt.plot('K','Score',data=distances_from_centers)
         plt.show()
-        kmeans = KMeans(n_clusters=30, init='k-means++', random_state=42)
+        k = self.find_optimal_k(distances_from_centers)
+        kmeans = KMeans(n_clusters=k, init='k-means++', random_state=42)
         y_kmeans = kmeans.fit_predict(self.face_images_encoded_list)
         # beginning of  the cluster numbering with 1 instead of 0
         y_kmeans1 = y_kmeans + 1
@@ -72,4 +75,9 @@ class Classifier:
                 os.mkdir(cluster_path)
             copyfile(os.path.join(FACES_PATH, row['Image'].name),
                      os.path.join(CLUSTERS_PATH, str(row['cluster']), row['Image'].name))
+
+    def find_optimal_k(self, distances_from_centers):
+        min_value = distances_from_centers['Score'].idxmin()
+        return distances_from_centers['K'][min_value]
+
 

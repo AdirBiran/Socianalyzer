@@ -58,10 +58,13 @@ def start():
             os.mkdir('Faces')
         if not os.path.isdir('Clusters'):
             os.mkdir('Clusters')
+        if not os.path.isdir('Connections'):
+            os.mkdir('Connections')
     except OSError:
         print("Creation of the directories failed")
 
-    load_data_from_disk()
+    prepare_data()
+    # load_data_from_disk()
 
 
 def load_data_from_disk():
@@ -77,8 +80,8 @@ def load_data_from_disk():
     connections.load_connections_from_disk()
 
     visualize = Visualization(connections)
-    # visualize.draw_personal_graph(99)
-    # visualize.show_all_personal_pictures(99)
+    visualize.draw_personal_graph(40)
+    visualize.show_all_personal_pictures(40)
     # visualize.show_pictures_of_connection(99, 34)
 
 
@@ -95,6 +98,10 @@ def prepare_data():
 
     connections = Connections(extractor, classifier)
     connections.generate_connections()
+    visualize = Visualization(connections)
+    visualize.draw_personal_graph(3)
+    visualize.show_all_personal_pictures(3)
+    # visualize.show_pictures_of_connection(99, 34)
 
 
 start()
