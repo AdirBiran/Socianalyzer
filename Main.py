@@ -9,7 +9,7 @@ import shutil
 
 from Cropper import Cropper
 from Extractor import Extractor
-from Classifier2 import Classifier
+from Classifier import Classifier
 from Connections import Connections
 from Visualization import Visualization
 from Settings import *
@@ -82,7 +82,7 @@ def load_data_from_disk():
     visualize = Visualization(connections)
     visualize.draw_personal_graph(40)
     visualize.show_all_personal_pictures(40)
-    # visualize.show_pictures_of_connection(99, 34)
+
 
 
 def prepare_data():

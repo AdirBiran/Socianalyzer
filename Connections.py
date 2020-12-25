@@ -120,6 +120,12 @@ class Connections:
             if face in self.clustering_dictionary[clust]:
                 return self.clustering_dictionary[clust][:]
 
+    def get_clusters(self):
+        res = {}
+        for cl in self.clustering_dictionary:
+            res[cl] = self.clustering_dictionary[cl][0]
+        return res
+
     def generate_connections(self):
         generated_connections = []
 
