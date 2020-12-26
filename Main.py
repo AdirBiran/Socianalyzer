@@ -37,9 +37,12 @@ def start():
             os.mkdir('Faces')
         if not os.path.isdir('Clusters'):
             os.mkdir('Clusters')
+        if not os.path.isdir('Connections'):
+            os.mkdir('Connections')
     except OSError:
         print("Creation of the directories failed")
 
+    # prepare_data()
     load_data_from_disk()
 
 
@@ -50,15 +53,17 @@ def load_data_from_disk():
     cropper = Cropper()
 
     extractor = Extractor(cropper)
+    extractor.extractFeaturesFromDirectory(FACES_PATH)
     classifier = Classifier(extractor.images)
-    connections = Connections(extractor, classifier)
+    classifier.calculate_all_similarities()
+    # connections = Connections(extractor, classifier)
 
-    connections.load_connections_from_disk()
+    # connections.load_connections_from_disk()
 
-    visualize = Visualization(connections)
-    visualize.draw_personal_graph(99)
-    # visualize.show_all_personal_pictures(99)
-    # visualize.show_pictures_of_connection(99, 34)
+    # visualize = Visualization(connections)
+    # visualize.draw_personal_graph(40)
+    # visualize.show_all_personal_pictures(40)
+
 
 
 def prepare_data():
@@ -74,6 +79,10 @@ def prepare_data():
 
     connections = Connections(extractor, classifier)
     connections.generate_connections()
+    # visualize = Visualization(connections)
+    # visualize.draw_personal_graph(3)
+    # visualize.show_all_personal_pictures(3)
+    # visualize.show_pictures_of_connection(99, 34)
 
 
 start()
