@@ -18,12 +18,17 @@ class Controller:
         self.connections.load_connections_from_disk()
 
     def generate_connections(self):
+        self.clean_clusters_directory()
+        self.clean_faces_directory()
+
         self.cropper.cropImagesInDirectory(DATA_PATH)
         self.extractor.extractFeaturesFromDirectory(FACES_PATH)
         self.extractor.fix_mapping_dictionary()
         self.classifier = Classifier(self.extractor.images)
         self.classifier.calculate_all_similarities()
+        self.connections = Connections(self.cropper, self.classifier)
         self.connections.generate_connections()
+        self.visualization = Visualization(self.connections)
 
     def get_results(self):
         return self.connections.get_clusters()
@@ -42,10 +47,6 @@ class Controller:
 
     def get_pictures_of_connection(self, clust_1, clust_2):
         return self.visualization.get_pictures_of_connection(clust_1, clust_2)
-
-    def clean_data(self):
-        self.clean_clusters_directory()
-        self.clean_faces_directory()
 
     def clean_clusters_directory(self):
         for filename in os.listdir(CLUSTERS_PATH):

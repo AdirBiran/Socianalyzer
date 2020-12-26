@@ -244,7 +244,7 @@ class GenerateConnections(tk.Frame):
         new_button(inner_frame, "Data Directory", self.open_data_directory).grid(row=2, column=0, pady=(0, 30))
         tk.Label(inner_frame, text="2. Click Generate Connections", bg=BACKGROUND_COLOR, justify="left").grid(row=3, column=0, sticky="w")
         new_button(inner_frame, "Generate Connections", self.generate_connections).grid(row=4, column=0, pady=(0, 30))
-        tk.Label(inner_frame, text="3. After generating the connections the results will be shown", bg=BACKGROUND_COLOR, justify="left").grid(row=5, column=0, sticky="w")
+        tk.Label(inner_frame, text="3. Wait until the results will appear", bg=BACKGROUND_COLOR, justify="left").grid(row=5, column=0, sticky="w")
 
         inner_frame.pack(side="top")
 
@@ -259,7 +259,6 @@ class GenerateConnections(tk.Frame):
 
             # 6 for "yes"
             if res == 6:
-                controller.clean_data()
                 controller.generate_connections()
                 self.master.switch_frame(Results)
 
