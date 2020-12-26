@@ -1,3 +1,4 @@
+import shutil
 from Cropper import Cropper
 from Extractor import Extractor
 from Connections import Connections
@@ -10,7 +11,6 @@ class Controller:
         self.cropper = Cropper()
         self.extractor = Extractor(self.cropper)
         self.classifier = Classifier(self.extractor.images)
-
         self.connections = Connections(self.cropper, self.classifier)
         self.visualization = Visualization(self.connections)
 
@@ -21,6 +21,7 @@ class Controller:
         self.cropper.cropImagesInDirectory(DATA_PATH)
         self.extractor.extractFeaturesFromDirectory(FACES_PATH)
         self.extractor.fix_mapping_dictionary()
+        self.classifier = Classifier(self.extractor.images)
         self.classifier.calculate_all_similarities()
         self.connections.generate_connections()
 
@@ -41,3 +42,29 @@ class Controller:
 
     def get_pictures_of_connection(self, clust_1, clust_2):
         return self.visualization.get_pictures_of_connection(clust_1, clust_2)
+
+    def clean_data(self):
+        self.clean_clusters_directory()
+        self.clean_faces_directory()
+
+    def clean_clusters_directory(self):
+        for filename in os.listdir(CLUSTERS_PATH):
+            file_path = os.path.join(CLUSTERS_PATH, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                pass
+
+    def clean_faces_directory(self):
+        for filename in os.listdir(FACES_PATH):
+            file_path = os.path.join(FACES_PATH, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                pass

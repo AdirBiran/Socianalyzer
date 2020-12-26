@@ -42,6 +42,29 @@ class ScrollableFrame:
                 i = 0
             i += 1
 
+    def fill_data_different_commands(self, images_paths, commands_list):
+
+
+        i = 1
+        j = 1
+
+        for k in range(len(images_paths)):
+            path = images_paths[k]
+            command = commands_list[k]
+            img = Image.open(path)
+            img = img.resize((self.image_size, self.image_size), Image.ANTIALIAS)
+            img = ImageTk.PhotoImage(img)
+            image = Button(self.window, image=img, bg=self.back_ground, command=command)
+            image.image = img
+
+            image.grid(row=j, column=i, padx=self.pad_x, pady=self.pad_y)
+
+            # Pictures per row
+            if i % self.images_per_row == 0:
+                j += 1
+                i = 0
+            i += 1
+
     def configure_scrolling(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 

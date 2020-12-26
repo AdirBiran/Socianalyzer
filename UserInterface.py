@@ -1,7 +1,6 @@
 import ctypes
 import tkinter as tk
 
-from Settings import *
 from Controller import *
 from PIL import ImageTk, Image
 from ScrollableFrame import ScrollableFrame
@@ -16,6 +15,7 @@ BUTTON_FONT_STYLE = ("David", 12, "bold")
 # Popups list
 opened_popups = []
 
+controller = Controller()
 # Open a custom popup
 def popup(title, content, justify="left"):
     for w in opened_popups:
@@ -215,10 +215,17 @@ class MainFrame(tk.Frame):
         # Buttons
         generate_connections_btn = new_button(inner_frame, "Generate Connections", lambda: master.switch_frame(GenerateConnections))
         generate_connections_btn.grid(row=2, column=0, padx=100)
-        results_btn = new_button(inner_frame, "View Results", lambda: master.switch_frame(Results))
+        results_btn = new_button(inner_frame, "View Results", self.check_generated_connections)
         results_btn.grid(row=2, column=1, padx=100)
 
         inner_frame.pack(side="top")
+
+    def check_generated_connections(self):
+        if are_connections_generated():
+            self.master.switch_frame(Results)
+        else:
+            ctypes.windll.user32.MessageBoxW(0, "No generated connections found", "Error!", 0)
+
 
 # Generate connections frame
 class GenerateConnections(tk.Frame):
@@ -229,15 +236,17 @@ class GenerateConnections(tk.Frame):
         # Title
         new_title(self, "Generate Connections")
 
+        inner_frame = tk.Frame(self, bg=BACKGROUND_COLOR)
+
         # Instructions
-        tk.Label(self, text="1. Place pictures in project's Data directory", bg=BACKGROUND_COLOR).pack(side="top")
-        tk.Label(self, text="2. Click Generate Connections", bg=BACKGROUND_COLOR).pack(side="top")
-        tk.Label(self, text="3. After generating the connections the results will be shown", bg=BACKGROUND_COLOR).pack(side="top")
+        new_subtitle(inner_frame, "Instructions").grid(row=0, column=0, sticky="w", pady=(50, 20))
+        tk.Label(inner_frame, text="1. Place pictures in project's Data directory", bg=BACKGROUND_COLOR, justify="left").grid(row=1, column=0, sticky="w")
+        new_button(inner_frame, "Data Directory", self.open_data_directory).grid(row=2, column=0, pady=(0, 30))
+        tk.Label(inner_frame, text="2. Click Generate Connections", bg=BACKGROUND_COLOR, justify="left").grid(row=3, column=0, sticky="w")
+        new_button(inner_frame, "Generate Connections", self.generate_connections).grid(row=4, column=0, pady=(0, 30))
+        tk.Label(inner_frame, text="3. After generating the connections the results will be shown", bg=BACKGROUND_COLOR, justify="left").grid(row=5, column=0, sticky="w")
 
-        # Buttons
-        new_button(self, "Data Directory", self.open_data_directory).pack(side="top")
-        new_button(self, "Generate Connections", self.generate_connections).pack(side="top")
-
+        inner_frame.pack(side="top")
 
     # Open data directory
     def open_data_directory(self):
@@ -250,14 +259,13 @@ class GenerateConnections(tk.Frame):
 
             # 6 for "yes"
             if res == 6:
-                Controller().generate_connections()
+                controller.clean_data()
+                controller.generate_connections()
                 self.master.switch_frame(Results)
 
         else:
-            Controller().generate_connections()
+            controller.generate_connections()
             self.master.switch_frame(Results)
-
-
 
 
 # Results frame
@@ -284,15 +292,26 @@ class Results(tk.Frame):
             tk.Label(inner_frame, text="All pictures of a connection (between 2 people)", bg=BACKGROUND_COLOR).grid(row=1, column=2, padx=50, pady=50)
 
             # Buttons
-            new_button(inner_frame, "View", lambda: self.master.switch_frame(PersonalConnectionsChooseScreen)).grid(row=2, column=0, padx=50)
-            new_button(inner_frame, "View", lambda: self.master.switch_frame(PersonalPicturesChooseScreen)).grid(row=2, column=1, padx=50)
-            new_button(inner_frame, "View", lambda: self.master.switch_frame(ConnectionsPictureChooseScreen)).grid(row=2, column=2, padx=50)
+            new_button(inner_frame, "View", self.switch_frame_personal_connections).grid(row=2, column=0, padx=50)
+            new_button(inner_frame, "View", self.switch_frame_personal_pictures).grid(row=2, column=1, padx=50)
+            new_button(inner_frame, "View", self.switch_frame_connections_pictures).grid(row=2, column=2, padx=50)
 
         # Connections weren't generated
         else:
             tk.Label(inner_frame, text="Connections haven't generated yet", bg=BACKGROUND_COLOR).pack(side="top", fill="x", pady=10)
 
         inner_frame.pack(side="top")
+
+
+    def switch_frame_personal_connections(self):
+        self.master.switch_frame(PersonalConnectionsChooseScreen)
+
+    def switch_frame_personal_pictures(self):
+        self.master.switch_frame(PersonalPicturesChooseScreen)
+
+    def switch_frame_connections_pictures(self):
+        self.master.switch_frame(ConnectionsPictureChooseScreen)
+
 
 # Personal connections choosing screen
 class PersonalConnectionsChooseScreen(tk.Frame):
@@ -303,44 +322,43 @@ class PersonalConnectionsChooseScreen(tk.Frame):
         # Title
         new_title(self, "Personal Connections Graph")
 
-        self.controller = Controller()
 
-        # If connections were generated
-        if are_connections_generated():
-            new_subtitle(self, "Please choose 1 cluster").pack(side="top", fill="x", pady=10)
-            self.controller.load_connections_from_disk()
 
-            # Connections' results
-            results = self.controller.get_results()
 
-            i = 1
-            j = 1
-            inner_frame = tk.Frame(self, bg=BACKGROUND_COLOR)
 
-            # Looping each cluster (face) in the results
-            for res in results:
-                img_path = os.path.join(FACES_PATH, results[res])
-                img = Image.open(img_path)
-                img = img.resize((FACE_SIZE, FACE_SIZE), Image.ANTIALIAS)
-                img = ImageTk.PhotoImage(img)
-                face_button = tk.Button(inner_frame, image=img, command=lambda r=res: self.draw_personal_graph(r))
-                face_button.image = img
-                face_button.grid(row=j, column=i, padx=10, pady=5)
+        new_subtitle(self, "Please choose 1 cluster").pack(side="top", fill="x", pady=10)
 
-                # 10 clusters per row
-                if i % 10 == 0:
-                    j += 1
-                    i = 0
-                i += 1
+        controller.load_connections_from_disk()
 
-            inner_frame.pack(side="top")
+        # Connections' results
+        results = controller.get_results()
 
-        # Connections weren't generated
-        else:
-            tk.Label(self, text="Connections haven't generated yet").pack(side="top", fill="x", pady=10)
+        i = 1
+        j = 1
+        inner_frame = tk.Frame(self, bg=BACKGROUND_COLOR)
+        new_button(inner_frame, "Back", lambda: self.master.switch_frame(Results)).grid(row=0, column=1, pady=(0,50))
+
+        # Looping each cluster (face) in the results
+        for res in results:
+            img_path = os.path.join(FACES_PATH, results[res])
+            img = Image.open(img_path)
+            img = img.resize((FACE_SIZE, FACE_SIZE), Image.ANTIALIAS)
+            img = ImageTk.PhotoImage(img)
+            face_button = tk.Button(inner_frame, image=img, command=lambda r=res: self.draw_personal_graph(r))
+            face_button.image = img
+            face_button.grid(row=j, column=i, padx=10, pady=5)
+
+            # 10 clusters per row
+            if i % 15 == 0:
+                j += 1
+                i = 0
+            i += 1
+
+        inner_frame.pack(side="top")
+
 
     def draw_personal_graph(self, choice):
-        self.controller.draw_personal_graph(choice)
+        controller.draw_personal_graph(choice)
 
 # Personal pictures choosing screen
 class PersonalPicturesChooseScreen(tk.Frame):
@@ -351,44 +369,40 @@ class PersonalPicturesChooseScreen(tk.Frame):
         # Title
         new_title(self, "Personal Pictures")
 
-        self.controller = Controller()
 
-        # If connections were generated
-        if are_connections_generated():
-            new_subtitle(self, "Please choose 1 cluster").pack(side="top", fill="x", pady=10)
-            self.controller.load_connections_from_disk()
 
-            # Connections' results
-            results = self.controller.get_results()
+        new_subtitle(self, "Please choose 1 cluster").pack(side="top", fill="x", pady=10)
+        controller.load_connections_from_disk()
 
-            i = 1
-            j = 1
-            inner_frame = tk.Frame(self, bg=BACKGROUND_COLOR)
+        # Connections' results
+        results = controller.get_results()
 
-            # Looping each cluster (face) in the results
-            for res in results:
-                img_path = os.path.join(FACES_PATH, results[res])
-                img = Image.open(img_path)
-                img = img.resize((FACE_SIZE, FACE_SIZE), Image.ANTIALIAS)
-                img = ImageTk.PhotoImage(img)
-                face_button = tk.Button(inner_frame, image=img, command=lambda r=res: self.personal_pictures(r))
-                face_button.image = img
-                face_button.grid(row=j, column=i, padx=10, pady=5)
+        i = 1
+        j = 1
+        inner_frame = tk.Frame(self, bg=BACKGROUND_COLOR)
+        new_button(inner_frame, "Back", lambda: self.master.switch_frame(Results)).grid(row=0, column=1, pady=(0,50))
 
-                # 10 clusters per row
-                if i % 10 == 0:
-                    j += 1
-                    i = 0
-                i += 1
+        # Looping each cluster (face) in the results
+        for res in results:
+            img_path = os.path.join(FACES_PATH, results[res])
+            img = Image.open(img_path)
+            img = img.resize((FACE_SIZE, FACE_SIZE), Image.ANTIALIAS)
+            img = ImageTk.PhotoImage(img)
+            face_button = tk.Button(inner_frame, image=img, command=lambda r=res: self.personal_pictures(r))
+            face_button.image = img
+            face_button.grid(row=j, column=i, padx=10, pady=5)
 
-            inner_frame.pack(side="top")
+            # 10 clusters per row
+            if i % 15 == 0:
+                j += 1
+                i = 0
+            i += 1
 
-        # Connections weren't generated
-        else:
-            tk.Label(self, text="Connections haven't generated yet").pack(side="top", fill="x", pady=10)
+        inner_frame.pack(side="top")
+
 
     def personal_pictures(self, choice):
-        images_paths = self.controller.get_all_personal_pictures(choice)
+        images_paths = controller.get_all_personal_pictures(choice)
 
         show_pictures(images_paths, "Personal Pictures")
 
@@ -398,43 +412,38 @@ class ConnectionsPictureChooseScreen(tk.Frame):
         self.configure(bg=BACKGROUND_COLOR)
         new_title(self, "Connection's Pictures")
 
-        self.controller = Controller()
         self.face_buttons = []
 
-        # If connections were generated
-        if are_connections_generated():
-            new_subtitle(self, "Please choose 2 cluster").pack(side="top", fill="x", pady=10)
-            self.controller.load_connections_from_disk()
 
-            # Connections' results
-            self.results = self.controller.get_results()
+        new_subtitle(self, "Please choose 2 cluster").pack(side="top", fill="x", pady=10)
+        controller.load_connections_from_disk()
 
-            i = 1
-            j = 1
-            inner_frame = tk.Frame(self, bg=BACKGROUND_COLOR)
+        # Connections' results
+        self.results = controller.get_results()
 
-            # Looping each cluster (face) in the results
-            for res in self.results:
-                img_path = os.path.join(FACES_PATH, self.results[res])
-                img = Image.open(img_path)
-                img = img.resize((FACE_SIZE, FACE_SIZE), Image.ANTIALIAS)
-                img = ImageTk.PhotoImage(img)
-                face_button = tk.Button(inner_frame, text=res, image=img, command=lambda r=res: self.first_choice(r))
-                face_button.image = img
-                face_button.grid(row=j, column=i, padx=10, pady=5)
-                self.face_buttons.append(face_button)
+        i = 1
+        j = 1
+        self.inner_frame = tk.Frame(self, bg=BACKGROUND_COLOR)
+        new_button(self.inner_frame, "Back", lambda: self.master.switch_frame(Results)).grid(row=0, column=1, pady=(0,50))
 
-                # 10 clusters per row
-                if i % 10 == 0:
-                    j += 1
-                    i = 0
-                i += 1
+        # Looping each cluster (face) in the results
+        for res in self.results:
+            img_path = os.path.join(FACES_PATH, self.results[res])
+            img = Image.open(img_path)
+            img = img.resize((FACE_SIZE, FACE_SIZE), Image.ANTIALIAS)
+            img = ImageTk.PhotoImage(img)
+            face_button = tk.Button(self.inner_frame, text=res, image=img, command=lambda r=res: self.first_choice(r))
+            face_button.image = img
+            face_button.grid(row=j, column=i, padx=10, pady=5)
+            self.face_buttons.append(face_button)
 
-            inner_frame.pack(side="top")
+            # 10 clusters per row
+            if i % 15 == 0:
+                j += 1
+                i = 0
+            i += 1
 
-        # Connections weren't generated
-        else:
-            tk.Label(self, text="Connections haven't generated yet").pack(side="top", fill="x", pady=10)
+        self.inner_frame.pack(side="top")
 
     # First cluster choice
     def first_choice(self, first_choice):
@@ -445,15 +454,17 @@ class ConnectionsPictureChooseScreen(tk.Frame):
     # Second cluster choice
     def second_choice(self, first_choice, second_choice):
         # Getting the connection's pictures
-        images_paths = self.controller.get_pictures_of_connection(first_choice, second_choice)
+        images_paths = controller.get_pictures_of_connection(first_choice, second_choice)
 
         # Configuring another command after second selection
         for btn in self.face_buttons:
             btn.configure(command=lambda r=btn['text']: self.first_choice(r))
 
-        # Showing pictures
-        show_pictures(images_paths, "Connection's Pictures")
-
+        if images_paths is None:
+            ctypes.windll.user32.MessageBoxW(0, "No common pictures found :(", "Error!", 0)
+        else:
+            # Showing pictures
+            show_pictures(images_paths, "Connection's Pictures")
 
 
 
