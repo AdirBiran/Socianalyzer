@@ -68,7 +68,7 @@ class Classifier:
 
 
 
-    def recluster(self, files_list):
+    def reculster(self, files_list):
         self.calculate_clusters_means(files_list)
         for dir1 in files_list:
             for dir2 in files_list:
