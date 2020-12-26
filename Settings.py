@@ -18,7 +18,7 @@ CLUSTERS_PATH = os.path.join(PROJECT_PATH, 'Clusters')
 CONNECTIONS_PATH = os.path.join(PROJECT_PATH, 'Connections')
 
 # Clustering Threshold
-CLUSTERING_THRESHOLD = 0.95
+CLUSTERING_THRESHOLD = 0.94
 
 # Image Max Sizes
 IMAGE_MAX_WIDTH = 200
