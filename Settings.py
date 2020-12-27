@@ -10,7 +10,7 @@ import os
 # Project's path
 PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
 
-# Directories pathes
+# Directories paths
 FACES_PATH = os.path.join(PROJECT_PATH, 'Faces')
 DATA_PATH = os.path.join(PROJECT_PATH, 'Data')
 RESOURCES_PATH = os.path.join(PROJECT_PATH, 'Resources')
@@ -21,16 +21,10 @@ CONNECTIONS_PATH = os.path.join(PROJECT_PATH, 'Connections')
 CLUSTERING_THRESHOLD = 0.94
 
 # Image Max Sizes
-IMAGE_MAX_WIDTH = 200
-IMAGE_MAX_HEIGHT = 200
 IMAGE_MAX_SIZE = 300
 
 # Face Size
 FACE_SIZE = 50
-
-# Screen Sizes
-SCREEN_HEIGHT = 0
-SCREEN_WIDTH = 0
 
 # App Name
 APP_NAME = "Socianalyzer"

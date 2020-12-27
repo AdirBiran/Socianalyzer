@@ -8,8 +8,9 @@ Authors:
 from imutils import paths
 import face_recognition
 import cv2
-from Settings import *
+import os
 from FaceImage import FaceImage
+
 
 class Extractor:
 
@@ -20,8 +21,9 @@ class Extractor:
         # Face to image (String, String)
         self.inverse_mapping_dictionary = cropper.inverse_mapping_dictionary
 
-    def extractFeaturesFromFaceImage(self, imagePath):
-        image = cv2.imread(imagePath)
+    # Extract features from a face image
+    def extract_features_from_face_image(self, image_path):
+        image = cv2.imread(image_path)
         rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         # Getting the face encodings
@@ -32,16 +34,17 @@ class Extractor:
         if len(encodings) > 0:
             return encodings[0]
         else:
-            os.remove(imagePath)
+            os.remove(image_path)
             return None
 
-    def extractFeaturesFromDirectory(self, dirPath):
+    # Extract features from a directory
+    def extract_features_from_directory(self, dir_path):
         # All images in directory
-        imagePaths = list(paths.list_images(dirPath))
+        images_paths = list(paths.list_images(dir_path))
 
-        for path in imagePaths:
+        for path in images_paths:
             face_name = path[path.rfind("\\") + 1:]
-            face_encoding = self.extractFeaturesFromFaceImage(path)
+            face_encoding = self.extract_features_from_face_image(path)
             if face_encoding is not None:
                 face_image_obj = FaceImage(face_name, face_encoding)
                 self.images.append(face_image_obj)

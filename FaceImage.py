@@ -5,6 +5,7 @@ Authors:
     12/2020
 """
 
+
 class FaceImage:
 
     def __init__(self, name, encoding):

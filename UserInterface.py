@@ -1,23 +1,36 @@
+"""
+Authors:
+    Liat Cohen  205595283
+    Adir Biran  308567239
+    12/2020
+"""
+
 import ctypes
 import tkinter as tk
-
-from Controller import *
+from Controller import Controller
+from Settings import *
 from PIL import ImageTk, Image
 from ScrollableFrame import ScrollableFrame
 
+# Styles
 TITLE_FONT_STYLE = ("David", 20, "bold")
 SUBTITLE_FONT_STYLE = ("David", 16, "bold")
 TITLE_FONT_COLOR = 'DarkBlue'
-BACKGROUND_COLOR = "darkseagreen1"
-BUTTON_BACKGROUND_COLOR = "darkseagreen2"
+BACKGROUND_COLOR = "DarkSeaGreen1"
+BUTTON_BACKGROUND_COLOR = "DarkSeaGreen2"
 BUTTON_FONT_STYLE = ("David", 12, "bold")
 
-# Popups list
+# Controller for all frames to communicate to lower layers
+controller = Controller()
+
+# Popups list for cleaning the popups when new one appears
 opened_popups = []
 
-controller = Controller()
+
 # Open a custom popup
 def popup(title, content, justify="left"):
+
+    # Destroy last popups
     for w in opened_popups:
         if w is None:
             opened_popups.remove(w)
@@ -25,6 +38,7 @@ def popup(title, content, justify="left"):
             w.destroy()
             w = None
 
+    # New window
     win = tk.Toplevel()
     win.wm_title(title)
     win.configure(bg=BACKGROUND_COLOR)
@@ -48,7 +62,64 @@ def popup(title, content, justify="left"):
     # Content
     tk.Label(win, text=content, bg=BACKGROUND_COLOR, justify=justify).pack()
 
+    # Add the popup to the existing popups list
     opened_popups.append(win)
+
+
+# Popup instructions
+def popup_instructions():
+    instructions_string = "Follow the next 3 steps:\n\n" \
+                          "1.\tPlace pictures in Data directory\n\n" \
+                          "2.\tClick 'Generate Connections' and wait until completion\n\n" \
+                          "3.\tView the results\n\n" \
+
+
+    popup("Instructions", instructions_string)
+
+
+# Popup contact
+def popup_contact():
+    contact_string = "Project Members:\n\n" \
+                     "\tLiat Cohen\t\tliatico@post.bgu.ac.il\n\n" \
+                     "\tAdir Biran\t\tadir.biran@gmail.com\n\n\n\n" \
+
+
+    popup("Contact", contact_string)
+
+
+# Popup about
+def popup_about():
+    about_string = "This project is made for connections analysis based on pictures dataset.\n\n" \
+                   "The project contains 5 main steps:\n\n" \
+                   "\t1. Cropping - Cut the faces of the pictures\n\n" \
+                   "\t2. Extractor - Extract 128 numeric features for each face\n\n" \
+                   "\t3. Classifier - Cluster the faces based on Cosine Similarity\n\n" \
+                   "\t4. Connections - Create the connections between the clusters\n\n" \
+                   "\t5. Visualization - Draw the graphs and connections\n\n" \
+                   "\t6. Controller - Control the request of the UI to the lower layers\n\n" \
+                   "\t7. UserInterface - GUI for different user operations\n\n\n\n" \
+                   "Programming Languages Principles\n\n" \
+                   "December 2020\n\n"
+
+    popup("About", about_string)
+
+def popup_results():
+
+    # Results' information
+    total_pictures = controller.count_files(DATA_PATH)
+    total_faces = controller.count_files(FACES_PATH)
+    total_clusters = controller.count_directories(CLUSTERS_PATH)
+    un_clustered_faces = controller.count_files(CLUSTERS_PATH)
+
+    # Results information string
+    info = "\nTotal Pictures in the dataset: " + str(total_pictures) + "\n\n" \
+                                                                       "Total faces found: " + str(total_faces) + "\n\n" \
+                                                                                                                  "Total clusters found (different people): " + str(
+        total_clusters) + "\n\n" \
+                          "Unclustered faces: " + str(un_clustered_faces) + "\n\n"
+
+    # Popup the results information
+    popup("Results", info)
 
 
 # Show full screen single picture
@@ -78,6 +149,7 @@ def show_full_picture(image_path):
 
     inner_frame.pack(side="top")
 
+
 # Show multiple pictures
 def show_pictures(images_paths, title):
     win = tk.Toplevel()
@@ -87,14 +159,16 @@ def show_pictures(images_paths, title):
     frame = tk.Frame(win, bg=BACKGROUND_COLOR)
     new_title(frame, title)
     frame.pack()
+
     # Menu bar
     menu_bar = tk.Menu(win)
     menu_bar.add_command(label="Close", command=win.destroy)
     win.configure(menu=menu_bar)
+
+    # 80% of the screen's height
     scale = 0.8
     scrollable_frame = ScrollableFrame(win, win.winfo_screenheight()*scale, IMAGE_MAX_SIZE, 3, 30, 30, BACKGROUND_COLOR)
     scrollable_frame.fill_data(images_paths, command_bind_on_click=show_full_picture)
-
 
 
 # Initiations
@@ -108,19 +182,23 @@ def init_directories():
     if not os.path.isdir(CONNECTIONS_PATH):
         os.mkdir(CONNECTIONS_PATH)
 
+
 # Check if connections file generated
 def are_connections_generated():
     if not os.path.isfile(os.path.join(CONNECTIONS_PATH, 'total_connections.json')):
         return False
     return os.path.getsize(os.path.join(CONNECTIONS_PATH, 'total_connections.json')) > 0
 
+
 # New custom title
 def new_title(frame, title):
     tk.Label(frame, text=title, fg=TITLE_FONT_COLOR, font=TITLE_FONT_STYLE, bg=BACKGROUND_COLOR).pack(side="top", fill="x", pady=10)
 
+
 # New custom sub title
 def new_subtitle(frame, subtitle):
     return tk.Label(frame, text=subtitle, fg=TITLE_FONT_COLOR, font=SUBTITLE_FONT_STYLE, bg=BACKGROUND_COLOR)
+
 
 # New custom button
 def new_button(frame, text, command):
@@ -139,12 +217,13 @@ class SocialConnectionsApp(tk.Tk):
         # Menu bar
         menu_bar = tk.Menu(self)
         menu_bar.add_command(label="Main", command=lambda: self.switch_frame(MainFrame))
-        menu_bar.add_command(label="Instructions", command=lambda: self.popup_instructions())
-        menu_bar.add_command(label="Contact", command=lambda: self.popup_contact())
-        menu_bar.add_command(label="About", command=lambda: self.popup_about())
+        menu_bar.add_command(label="Instructions", command=lambda: popup_instructions())
+        menu_bar.add_command(label="Contact", command=lambda: popup_contact())
+        menu_bar.add_command(label="About", command=lambda: popup_about())
         menu_bar.add_command(label="Exit", command=self.tk.destroy)
         self.tk.configure(menu=menu_bar)
 
+        # Switch to main frame
         self.current_frame = None
         self.switch_frame(MainFrame)
 
@@ -155,41 +234,6 @@ class SocialConnectionsApp(tk.Tk):
             self.current_frame.destroy()
         self.current_frame = new_frame
         self.current_frame.pack()
-
-    # Popup instructions
-    def popup_instructions(self):
-        instructions_string = "Follow the next 3 steps:\n\n" \
-                              "1.\tPlace pictures in Data directory\n\n" \
-                              "2.\tClick 'Generate Connections' and wait until completion\n\n" \
-                              "3.\tView the results\n\n" \
-
-
-        popup("Instructions", instructions_string)
-
-    # Popup contact
-    def popup_contact(self):
-        contact_string = "Project Members:\n\n" \
-                         "\tLiat Cohen\t\tliatico@post.bgu.ac.il\n\n" \
-                         "\tAdir Biran\t\tadir.biran@gmail.com\n\n\n\n" \
-
-
-        popup("Contact", contact_string)
-
-    # Popup about
-    def popup_about(self):
-        about_string = "This project is made for connections analysis based on pictures dataset.\n\n" \
-                       "The project contains 5 main steps:\n\n" \
-                       "\t1. Cropping - Cut the faces of the pictures\n\n" \
-                       "\t2. Extractor - Extract 128 numeric features for each face\n\n" \
-                       "\t3. Classifier - Cluster the faces based on Cosine Similarity\n\n" \
-                       "\t4. Connections - Create the connections between the clusters\n\n" \
-                       "\t5. Visualization - Draw the graphs and connections\n\n" \
-                       "\t6. Controller - Control the request of the UI to the lower layers\n\n" \
-                       "\t7. UserInterface - GUI for different user operations\n\n\n\n" \
-                       "Programming Languages Principles\n\n" \
-                       "December 2020\n\n"
-
-        popup("About", about_string)
 
 
 # Main frame
@@ -220,8 +264,10 @@ class MainFrame(tk.Frame):
 
         inner_frame.pack(side="top")
 
+    # Popup a message box if connections aren't generated yet
     def check_generated_connections(self):
         if are_connections_generated():
+            popup_results()
             self.master.switch_frame(Results)
         else:
             ctypes.windll.user32.MessageBoxW(0, "No generated connections found", "Error!", 0)
@@ -254,16 +300,22 @@ class GenerateConnections(tk.Frame):
 
     # Generate the connections
     def generate_connections(self):
+
+        # Connections are already generated
         if are_connections_generated():
-            res = ctypes.windll.user32.MessageBoxW(0, "Connections are already generated.\nDo you want to recluster the data?", "Alert!", 4)
+            error_string = "Connections are already generated.\nDo you want to re-cluster the data?"
+            res = ctypes.windll.user32.MessageBoxW(0, error_string, "Alert!", 4)
 
             # 6 for "yes"
             if res == 6:
                 controller.generate_connections()
+                popup_results()
                 self.master.switch_frame(Results)
 
+        # Connections aren't generated yet
         else:
             controller.generate_connections()
+            popup_results()
             self.master.switch_frame(Results)
 
 
@@ -301,13 +353,15 @@ class Results(tk.Frame):
 
         inner_frame.pack(side="top")
 
-
+    # Switch to personal connections frame
     def switch_frame_personal_connections(self):
         self.master.switch_frame(PersonalConnectionsChooseScreen)
 
+    # Switch to personal pictures frame
     def switch_frame_personal_pictures(self):
         self.master.switch_frame(PersonalPicturesChooseScreen)
 
+    # switch to connection pictures frame
     def switch_frame_connections_pictures(self):
         self.master.switch_frame(ConnectionsPictureChooseScreen)
 
@@ -321,20 +375,21 @@ class PersonalConnectionsChooseScreen(tk.Frame):
         # Title
         new_title(self, "Personal Connections Graph")
 
-
-
-
-
         new_subtitle(self, "Please choose 1 cluster").pack(side="top", fill="x", pady=10)
 
+        # load the connections
         controller.load_connections_from_disk()
 
         # Connections' results
         results = controller.get_results()
 
+        # Indices for the grid
         i = 1
         j = 1
+
         inner_frame = tk.Frame(self, bg=BACKGROUND_COLOR)
+
+        # Back button
         new_button(inner_frame, "Back", lambda: self.master.switch_frame(Results)).grid(row=0, column=1, pady=(0,50))
 
         # Looping each cluster (face) in the results
@@ -355,9 +410,9 @@ class PersonalConnectionsChooseScreen(tk.Frame):
 
         inner_frame.pack(side="top")
 
-
     def draw_personal_graph(self, choice):
         controller.draw_personal_graph(choice)
+
 
 # Personal pictures choosing screen
 class PersonalPicturesChooseScreen(tk.Frame):
@@ -368,17 +423,19 @@ class PersonalPicturesChooseScreen(tk.Frame):
         # Title
         new_title(self, "Personal Pictures")
 
-
-
         new_subtitle(self, "Please choose 1 cluster").pack(side="top", fill="x", pady=10)
         controller.load_connections_from_disk()
 
         # Connections' results
         results = controller.get_results()
 
+        # Indices for the grid
         i = 1
         j = 1
+
         inner_frame = tk.Frame(self, bg=BACKGROUND_COLOR)
+
+        # Back button
         new_button(inner_frame, "Back", lambda: self.master.switch_frame(Results)).grid(row=0, column=1, pady=(0,50))
 
         # Looping each cluster (face) in the results
@@ -399,11 +456,11 @@ class PersonalPicturesChooseScreen(tk.Frame):
 
         inner_frame.pack(side="top")
 
-
+    # Showing the personal pictures
     def personal_pictures(self, choice):
         images_paths = controller.get_all_personal_pictures(choice)
-
         show_pictures(images_paths, "Personal Pictures")
+
 
 class ConnectionsPictureChooseScreen(tk.Frame):
     def __init__(self, master):
@@ -413,16 +470,21 @@ class ConnectionsPictureChooseScreen(tk.Frame):
 
         self.face_buttons = []
 
-
         new_subtitle(self, "Please choose 2 cluster").pack(side="top", fill="x", pady=10)
+
+        # Load the connections
         controller.load_connections_from_disk()
 
         # Connections' results
         self.results = controller.get_results()
 
+        # Indices for the grid
         i = 1
         j = 1
+
         self.inner_frame = tk.Frame(self, bg=BACKGROUND_COLOR)
+
+        # Back button
         new_button(self.inner_frame, "Back", lambda: self.master.switch_frame(Results)).grid(row=0, column=1, pady=(0,50))
 
         # Looping each cluster (face) in the results
@@ -464,8 +526,6 @@ class ConnectionsPictureChooseScreen(tk.Frame):
         else:
             # Showing pictures
             show_pictures(images_paths, "Connection's Pictures")
-
-
 
 
 if __name__ == "__main__":

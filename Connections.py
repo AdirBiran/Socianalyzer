@@ -6,7 +6,9 @@ Authors:
 """
 
 import json
-from Settings import *
+import os
+from Settings import CONNECTIONS_PATH, CLUSTERS_PATH
+
 
 class Connections:
     def __init__(self, extractor, classifier):
@@ -21,10 +23,18 @@ class Connections:
         # All connections between clusters
         self.total_connections = []
 
-        self.remove_duplicated_faces()
+    def set_extractor_classifier(self, extractor, classifier):
+        # Image to faces
+        self.mapping_dictionary = extractor.mapping_dictionary
+        # Face to image
+        self.inverse_mapping_dictionary = extractor.inverse_mapping_dictionary
+        # Cluster to faces
+        self.clustering_dictionary = classifier.clustering_dictionary
+        # Face to cluster
+        self.inverse_clustering_dictionary = classifier.inverse_clustering_dictionary
 
     def save_connections_to_disk(self):
-        # Files
+        # Mapping Files
         mapping_dictionary_file = os.path.join(CONNECTIONS_PATH, 'mapping.json')
         inverse_mapping_dictionary_file = os.path.join(CONNECTIONS_PATH, 'inverse_mapping.json')
         clustering_dictionary_file = os.path.join(CONNECTIONS_PATH, 'clustering_mapping.json')
@@ -72,7 +82,7 @@ class Connections:
             self.clustering_dictionary = json.loads(file.read())
 
         # Inverse Clustering Dictionary
-        with open(inverse_mapping_dictionary_file, 'r') as file:
+        with open(inverse_clustering_file, 'r') as file:
             self.inverse_clustering_dictionary = json.loads(file.read())
 
         # Total Connections
@@ -191,7 +201,7 @@ class Connections:
 
         # Sorting
         if sorted_by_connections:
-            results.sort(key = lambda x: x[1], reverse=True)
+            results.sort(key=lambda x: x[1], reverse=True)
 
         return results
 
