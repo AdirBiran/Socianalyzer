@@ -36,7 +36,7 @@ Instructions:
 
 
 Authors:
-	Liat Cohen		liatico@post.bgu.ac.il
+	Liat Cohen		liatico77@gmail.com
 	Adir Biran		adir.biran@gmail.com
 
 
